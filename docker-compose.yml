@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+    api:
+        container_name: ${APP_NAME}_api
+        build:
+            context: .
+            target: php
+            args:
+                - APP_ENV=${APP_ENV}
+        environment:
+            - APP_ENV=${APP_ENV}
+        working_dir: /var/www
+        volumes:
+            - ./:/var/www
+        ports:
+            - ${DOCKER_PORT}:8080
+        depends_on:
+            - database
+            - redis
+    database:
+        container_name: ${APP_NAME}_database
+        image: mysql:8.0
+        ports:
+            -   3306:3306
+        environment:
+            - MYSQL_DATABASE=${DB_DATABASE}
+            - MYSQL_USER=${DB_USERNAME}
+            - MYSQL_PASSWORD=${DB_PASSWORD}
+            - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+        volumes:
+            - db-data:/var/lib/mysql
+            - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+            - ./docker/mysql/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+#            - ./docker/mysql/general.log:/var/log/mysql/general.log
+    redis:
+        container_name:  ${APP_NAME}_redis
+        image: redis:alpine
+        command: redis-server --appendonly yes --requirepass  "E[BK@$4aj*eJz%Bj]&"
+        ports:
+            - 6382:6379
+volumes:
+    db-data: ~
